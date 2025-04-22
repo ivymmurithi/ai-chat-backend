@@ -4,15 +4,22 @@ import json
 import os
 from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
-
+from pydantic import BaseModel
+from config import add_cors
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
 app = FastAPI()
+add_cors(app)
 
-@app.get("/")
-def root():
+
+class UserPrompt(BaseModel):
+    prompt: str
+
+
+@app.post("/")
+def root(user_prompt: UserPrompt):
     response = requests.post(
     url="https://openrouter.ai/api/v1/chat/completions",
     headers={
@@ -20,11 +27,11 @@ def root():
         "Content-Type": "application/json",
     },
     data=json.dumps({
-        "model": "deepseek/deepseek-v3-base:free",
+        "model": "deepseek/deepseek-r1:free",
         "messages": [
         {
             "role": "user",
-            "content": "What is the meaning of life?"
+            "content": user_prompt.prompt
         }
         ],  
     }),
